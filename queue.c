@@ -29,6 +29,7 @@ queue_t *q_new()
     if (q == NULL)
         return NULL;
     q->head = NULL;
+    q->tail = NULL;
     q->size = 0;
 
     return q;
@@ -69,11 +70,14 @@ bool q_insert_head(queue_t *q, char *s)
         return false;
     newh->next = q->head;
     q->head = newh;
+    if (q->tail == NULL)
+        q->tail = newh;
 
     newh->value = malloc(strlen(s) + 1);
     if (newh->value == NULL)
         return false;
     memcpy(newh->value, s, strlen(s));
+    newh->value[strlen(s)] = '\0';
 
     q->size++;
 
@@ -95,16 +99,22 @@ bool q_insert_tail(queue_t *q, char *s)
     list_ele_t *newt;
     if (q == NULL)
         return false;
+
     newt = malloc(sizeof(list_ele_t));
     if (newt == NULL)
         return false;
-    q->tail->next = newt;
+    if (q->tail != NULL)
+        q->tail->next = newt;
     q->tail = newt;
+    if (q->head == NULL)
+        q->head = newt;
 
+    newt->next = NULL;
     newt->value = malloc(strlen(s) + 1);
     if (newt->value == NULL)
         return false;
     memcpy(newt->value, s, strlen(s));
+    newt->value[strlen(s)] = '\0';
 
     q->size++;
 
@@ -123,10 +133,12 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
 {
     /* You need to fix up this code. */
     list_ele_t *target;
-    if (q == NULL)
+    if (q == NULL || q->size == 0)
         return false;
     target = q->head;
     q->head = q->head->next;
+    if (q->head == NULL)
+        q->tail = NULL;
 
     if (sp != NULL) {
         size_t value_str_len = strlen(target->value);
@@ -135,7 +147,7 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
             sp[bufsize - 1] = '\0';
         } else {
             strncpy(sp, target->value, value_str_len);
-            sp[value_str_len - 1] = '\0';
+            sp[value_str_len] = '\0';
         }
     }
     free(target->value);
